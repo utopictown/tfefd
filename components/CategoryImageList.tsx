@@ -27,8 +27,7 @@ const CategoryImageList = ({ cols = 4, itemPerPage = 10, fixedItem = false }: IC
     if (fixedItem && data && data.pages.length > 1) remove();
   }, []);
 
-  if (isError) return <div>error</div>;
-  if (isLoading)
+  if (isLoading || isError)
     return (
       <Grid container spacing={2} rowSpacing={1}>
         {Array(8)
