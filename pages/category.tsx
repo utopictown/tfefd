@@ -17,7 +17,7 @@ function category() {
           </Typography>
         </Box>
       </Button>
-      <CategoryImageList cols={3} />
+      <CategoryImageList cols={3} showSearchBar />
     </Layout>
   );
 }

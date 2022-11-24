@@ -6,6 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const page = Math.max(Number(req.query.page), 1);
   const itemPerPage = Number(req.query.itemPerPage);
+  const q = req.query.q;
 
   try {
     resp = await axios.post("https://gateway.foodoo.id/v1/subcategory/list", {
@@ -16,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       show_relationship: false,
       id: "",
       category_id: "",
-      subcategory_name: "",
+      subcategory_name: q ?? "",
     });
     const nextPage = page < resp.data.data.total_pages ? Number(req.query.page) + 1 : undefined;
 

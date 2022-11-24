@@ -1,12 +1,14 @@
-import { Box, Button, Grid, ImageList, ImageListItem, ImageListItemBar, Skeleton } from "@mui/material";
-import React, { Fragment, useEffect, useRef, useState } from "react";
-import { useInfiniteQuery } from "react-query";
+import { SearchOutlined } from "@mui/icons-material";
+import { Box, Button, Grid, IconButton, ImageList, ImageListItem, ImageListItemBar, Input, InputAdornment, Skeleton } from "@mui/material";
+import React, { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useInfiniteQuery, useQueryClient } from "react-query";
 import getSubcatList from "../queries/get-subcat-list";
 
 interface ICategoryImageList {
   cols: number;
   itemPerPage?: number;
   fixedItem?: boolean;
+  showSearchBar?: boolean;
 }
 
 type TSubCatList = {
@@ -16,15 +18,32 @@ type TSubCatList = {
   nextPage: number | undefined;
 };
 
-const CategoryImageList = ({ cols = 4, itemPerPage = 10, fixedItem = false }: ICategoryImageList) => {
+const CategoryImageList = ({ cols = 4, itemPerPage = 10, fixedItem = false, showSearchBar = false }: ICategoryImageList) => {
   const ref = useRef<HTMLImageElement>(null);
+  const [qSearch, setQSearch] = useState("");
+  const queryClient = useQueryClient();
 
-  let { data, isError, isLoading, fetchNextPage, hasNextPage, remove } = useInfiniteQuery<TSubCatList>("getSubCatList", ({ pageParam = 1 }) => getSubcatList({ pageParam, itemPerPage }), {
-    getNextPageParam: (lastPage, pages) => lastPage?.nextPage,
-  });
+  let { data, isError, isLoading, fetchNextPage, hasNextPage, remove, refetch } = useInfiniteQuery<TSubCatList>(
+    "getSubCatList",
+    ({ pageParam = 1 }) => getSubcatList({ pageParam, itemPerPage, qSearch }),
+    {
+      getNextPageParam: (lastPage, pages) => lastPage?.nextPage,
+    }
+  );
 
   useEffect(() => {
-    if (fixedItem && data && data.pages.length > 1) remove();
+    if (fixedItem && data && (data.pages.length > 1 || data.pages[0].items.length > itemPerPage)) remove();
+  }, []);
+
+  useEffect(() => {
+    refetch();
+  }, [qSearch]);
+
+  const handleReset = useCallback(async () => {
+    queryClient.setQueryData("getSubCatList", (oldData: any) => {
+      return { ...oldData, pages: oldData.pages.slice(0, 1) };
+    });
+    setQSearch("");
   }, []);
 
   if (isLoading || isError)
@@ -42,6 +61,22 @@ const CategoryImageList = ({ cols = 4, itemPerPage = 10, fixedItem = false }: IC
 
   return (
     <Box display="flex" flexDirection="column" justifyItems="center">
+      {showSearchBar && (
+        <Input
+          value={qSearch}
+          placeholder="Search"
+          inputProps={{ "aria-label": "search" }}
+          sx={{ width: "100%", ":after": { borderColor: "#ff7b00" } }}
+          onChange={(e) => setQSearch(e.target.value)}
+          endAdornment={
+            <InputAdornment position="end">
+              <IconButton aria-label="search" onClick={() => refetch()}>
+                {<SearchOutlined />}
+              </IconButton>
+            </InputAdornment>
+          }
+        />
+      )}
       <ImageList variant="standard" cols={cols}>
         {!!data &&
           data.pages.map((page, pk) => (
@@ -69,8 +104,15 @@ const CategoryImageList = ({ cols = 4, itemPerPage = 10, fixedItem = false }: IC
       </ImageList>
       {!!hasNextPage && !fixedItem && (
         <Box justifyContent="center" display="flex">
-          <Button title="Load More" size="medium" color="warning" onClick={() => fetchNextPage()}>
+          <Button variant="outlined" title="Load More" size="medium" color="warning" onClick={() => fetchNextPage()}>
             Load More
+          </Button>
+        </Box>
+      )}
+      {!hasNextPage && (
+        <Box justifyContent="center" display="flex">
+          <Button variant="contained" title="Load More" size="medium" color="warning" onClick={handleReset}>
+            Reset
           </Button>
         </Box>
       )}
