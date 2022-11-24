@@ -29,7 +29,7 @@ export default function Layout({ children, title = "tfefd", description = "tfefd
         {children}
       </Box>
       <Paper sx={{ maxWidth: "sm", position: "fixed", bottom: 0, width: "100%" }} elevation={3}>
-        <BottomNavigation value={value} sx={{ justifyContent: "space-between" }}>
+        <BottomNavigation value={value} sx={{ justifyContent: "space-evenly" }}>
           <NavAction icon={<HomeOutlined />} />
           <NavAction icon={<MapOutlined />} />
           <NavAction icon={<PhotoCameraOutlined />} />
