@@ -5,7 +5,7 @@ import React from "react";
 import CategoryImageList from "../components/CategoryImageList";
 import Layout from "../components/Layout";
 
-function category() {
+function Category() {
   const router = useRouter();
   return (
     <Layout>
@@ -22,4 +22,4 @@ function category() {
   );
 }
 
-export default category;
+export default Category;
